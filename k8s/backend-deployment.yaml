@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      tier: backend
+      track: stable
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        tier: backend
+        track: stable
+    spec:
+      containers:
+        - name: backend
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "400m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 5  
+          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-backend:v1"
+          ports:
+            -  containerPort: 8000
+...

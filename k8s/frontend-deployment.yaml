@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app
+spec:
+  selector:
+    matchLabels:
+      app: react-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: react-app
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: react-app
+          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend:v2"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/usr/sbin/nginx","-s","quit"]
+...

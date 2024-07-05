@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import axios from "axios";
 import {
   Box,
   Flex,
@@ -21,7 +22,12 @@ export const Navbar = () => {
 
 
   const handleLogout = () => {
-    window.location.href = "/";
+    console.log('trying with api')
+    axios.post("/api/").then((res) => {
+      console.log(res);
+    });
+    
+    //window.location.href = "/";
   }
 
   return (
