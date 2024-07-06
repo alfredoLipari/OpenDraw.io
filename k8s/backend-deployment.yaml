@@ -25,6 +25,11 @@ spec:
             requests:
               cpu: "200m"
           image: "backend"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             -  containerPort: 8000
 ...
