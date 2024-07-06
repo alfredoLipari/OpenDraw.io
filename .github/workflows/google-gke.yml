@@ -11,11 +11,11 @@ env:
   GAR_LOCATION: us-west1
   GKE_CLUSTER: cluster-app
   GKE_ZONE: us-west1
-  DEPLOYMENT_NAME_FE: fe-deployment # Update this to your frontend deployment name
-  DEPLOYMENT_NAME_BE: be-deployment # Update this to your backend deployment name
+  DEPLOYMENT_NAME_FE: react-app # Update this to your frontend deployment name
+  DEPLOYMENT_NAME_BE: backend # Update this to your backend deployment name
   REPOSITORY: opendraw-repo
-  IMAGE_FE: react-app
-  IMAGE_BE: backend
+  IMAGE_FE: opendraw-frontend
+  IMAGE_BE: opendraw-backend
 
 jobs:
   setup-build-publish-deploy:
