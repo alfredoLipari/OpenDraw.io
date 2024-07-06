@@ -9,6 +9,7 @@ resources:
 
 images:
   - name: react-app
+    newName: us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend
     newTag: latest # This will be dynamically replaced
   - name: backend
     newTag: latest # This will be dynamically replaced
