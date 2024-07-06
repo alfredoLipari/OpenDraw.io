@@ -8,7 +8,7 @@ resources:
   - frontend-service.yaml
 
 images:
-  - name: frontend
+  - name: react-app
     newTag: latest # This will be dynamically replaced
   - name: backend
     newTag: latest # This will be dynamically replaced
