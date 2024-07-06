@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: react-app
-          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend"
+          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend:latest"
           resources:
             limits:
               cpu: "500m"
