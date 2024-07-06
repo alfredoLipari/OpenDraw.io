@@ -1,6 +1,6 @@
 # Boilerplate used from https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-google-kubernetes-engine
 
-name: Build and Deploy OpenDraw to GKE
+name: Build and Deploy OpenDraw to GKE v1.0
 
 on:
   push:
