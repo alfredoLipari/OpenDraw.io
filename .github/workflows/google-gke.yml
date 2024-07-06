@@ -42,7 +42,7 @@ jobs:
     # helper for authentication
     - name: "Docker auth"
       run: |-
-        gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
+        gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
 
     - name: Set up GKE credentials
       uses: google-github-actions/get-gke-credentials@v0
@@ -54,20 +54,20 @@ jobs:
     - name: Build and push Frontend Docker image
       run: |-
         docker build \
-          --tag "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_FE:$GITHUB_SHA" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
+          --tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}" \
+          --build-arg GITHUB_SHA="${{ github.sha }}" \
+          --build-arg GITHUB_REF="${{ github.ref }}" \
           ./frontend
-        docker push "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_FE:$GITHUB_SHA"
+        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}"
 
     - name: Build and push Backend Docker image
       run: |-
         docker build \
-          --tag "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_BE:$GITHUB_SHA" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
+          --tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}" \
+          --build-arg GITHUB_SHA="${{ github.sha }}" \
+          --build-arg GITHUB_REF="${{ github.ref }}" \
           ./backend
-        docker push "$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_BE:$GITHUB_SHA"
+        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}"
 
     - name: Set up Kustomize
       run: |-
@@ -77,9 +77,9 @@ jobs:
     - name: Deploy to GKE
       run: |-
         cd k8s
-        ./kustomize edit set image "$REPOSITORY/$IMAGE_FE=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_FE:$GITHUB_SHA"
-        ./kustomize edit set image  "$REPOSITORY/$IMAGE_BE=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_BE:$GITHUB_SHA"
+        ./kustomize edit set image "${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}"
+        ./kustomize edit set image "${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}"
         ./kustomize build . | kubectl apply -f -
-        kubectl rollout status deployment/$DEPLOYMENT_NAME_FE
-        kubectl rollout status deployment/$DEPLOYMENT_NAME_BE
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_FE }}
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_BE }}
         kubectl get services -o wide
