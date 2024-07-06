@@ -81,6 +81,8 @@ jobs:
         ./kustomize edit set image "react-app=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}"
         ./kustomize edit set image "backend=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}"
         cat kustomization.yaml
+        ./kustomize build . > deployment.yaml
+        cat deployment.yaml
         ./kustomize build . | kubectl apply -f -
         kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_FE }}
         kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_BE }}
