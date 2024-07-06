@@ -23,7 +23,7 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     console.log('trying with api')
-    axios.post("/api/").then((res) => {
+    axios.post("/api/add").then((res) => {
       console.log(res);
     });
     

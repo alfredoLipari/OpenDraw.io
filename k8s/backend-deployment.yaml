@@ -23,14 +23,14 @@ spec:
               cpu: "1000m"
               memory: "1Gi"
             requests:
-              cpu: "400m"
+              cpu: "200m"
           livenessProbe:
             httpGet:
               path: /health
               port: 8000
             initialDelaySeconds: 30
             periodSeconds: 5  
-          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-backend:v1"
+          image: "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-backend:latest"
           ports:
             -  containerPort: 8000
 ...
