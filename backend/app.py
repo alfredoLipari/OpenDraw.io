@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
+import os
 
 app = Flask(__name__)
 
@@ -10,7 +11,8 @@ collection = db['items']
 
 @app.route('/')
 def index():
-    return "Welcome to opendraw!", 200
+    pod_name = os.environ.get('POD_NAME', 'unknown')
+    return f"Welcome to opendraw by {pod_name}!", 200
 
 @app.route('/health')
 def health():
