@@ -4,13 +4,13 @@ from bson import ObjectId
 
 app = Flask(__name__)
 
-client = MongoClient('mongodb://mongo:27017/')
-db = client['testdb']
+client = MongoClient('mongodb://mongo-service:27017/')
+db = client['opendraw']
 collection = db['items']
 
 @app.route('/')
 def index():
-    return "My Addition App", 200
+    return "Welcome to opendraw!", 200
 
 @app.route('/health')
 def health():
