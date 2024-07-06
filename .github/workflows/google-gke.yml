@@ -1,0 +1,94 @@
+# Boilerplate used from https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-google-kubernetes-engine
+
+name: Build and Deploy OpenDraw to GKE v1.0
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GAR_LOCATION: us-west1
+  GKE_CLUSTER: cluster-app
+  GKE_ZONE: us-west1
+  DEPLOYMENT_NAME_FE: react-app # Update this to your frontend deployment name
+  DEPLOYMENT_NAME_BE: backend # Update this to your backend deployment name
+  REPOSITORY: opendraw-repo
+  IMAGE_FE: opendraw-frontend
+  IMAGE_BE: opendraw-backend
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Setup gcloud CLI
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+    # Configure Docker to use the gcloud command-line tool as a credential
+    # helper for authentication
+    - name: "Docker auth"
+      run: |-
+        gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+    - name: Set up GKE credentials
+      uses: google-github-actions/get-gke-credentials@db150f2cc60d1716e61922b832eae71d2a45938f
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Build and push Frontend Docker image
+      run: |-
+        docker build \
+          --tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}" \
+          --build-arg GITHUB_SHA="${{ github.sha }}" \
+          --build-arg GITHUB_REF="${{ github.ref }}" \
+          ./frontend
+        docker push "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend:${{ github.sha }}"
+
+    - name: Build and push Backend Docker image
+      run: |-
+        docker build \
+          --tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}" \
+          --build-arg GITHUB_SHA="${{ github.sha }}" \
+          --build-arg GITHUB_REF="${{ github.ref }}" \
+          ./backend
+        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}"   
+
+    - name: Set up Kustomize
+      run: |-
+        cd k8s
+        curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+        chmod u+x ./kustomize
+
+    - name: List files in the k8s directory
+      run: |-
+        ls -la
+        pwd
+        cd k8s
+        pwd
+        ls -la 
+
+    - name: Deploy to GKE
+      run: |-
+        cd k8s
+        ./kustomize edit set image "${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}"
+        ./kustomize edit set image "${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_BE }}:${{ github.sha }}"
+        ./kustomize build . | kubectl apply -f -
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_FE }}
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME_BE }}
+        kubectl get services -o wide
