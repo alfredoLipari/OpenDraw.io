@@ -6,3 +6,9 @@ resources:
   - backend-service.yaml
   - frontend-deployment.yaml
   - frontend-service.yaml
+
+images:
+  - name: us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend
+    newTag: latest # This will be dynamically replaced
+  - name: us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-backend
+    newTag: latest # This will be dynamically replaced
