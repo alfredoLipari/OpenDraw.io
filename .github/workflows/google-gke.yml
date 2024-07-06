@@ -58,7 +58,7 @@ jobs:
           --build-arg GITHUB_SHA="${{ github.sha }}" \
           --build-arg GITHUB_REF="${{ github.ref }}" \
           ./frontend
-        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_FE }}:${{ github.sha }}"
+        docker push "us-west1-docker.pkg.dev/opendraw/opendraw-repo/opendraw-frontend:${{ github.sha }}"
 
     - name: Build and push Backend Docker image
       run: |-
