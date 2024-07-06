@@ -41,7 +41,7 @@ export const Login = () => {
     <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6} mt={40}>
       <Stack align={'center'}>
         <Heading fontSize={'4xl'} textAlign={'center'}>
-          Choose an username
+          Choose an username 🎨
         </Heading>
         <Text fontSize={'lg'} color={'gray.600'}>
           to start a game of drawing with our bot ✌️
