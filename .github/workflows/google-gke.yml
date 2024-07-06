@@ -32,16 +32,17 @@ jobs:
       uses: actions/checkout@v4
 
     # Setup gcloud CLI
-    - uses: google-github-actions/setup-gcloud@1bee7de035d65ec5da40a31f8589e240eba8fde5
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v1'
       with:
-        service_account_key: ${{ secrets.GKE_SA_KEY }}
-        project_id: ${{ secrets.GKE_PROJECT }}
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
 
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
-    - run: |-
-        gcloud --quiet auth configure-docker
-        gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev
+    - name: "Docker auth"
+      run: |-
+        gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
 
     - name: Set up GKE credentials
       uses: google-github-actions/get-gke-credentials@v0
