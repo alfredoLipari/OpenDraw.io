@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const instance = axios.create({
-    baseURL: "https://sketch.sonar.wiki/",
+    baseURL: "http://34.105.27.9/",
     headers: {
         "Content-Type": "application/json",
     },
