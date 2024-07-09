@@ -9,6 +9,8 @@ load_dotenv()
 
 # CONSTANTS
 TIMEOUT = 60
+MAX_SCORE = 100
+TOP_LEADERBOARD_SIZE = 100
 
 with open("configuration/objects.json", "r") as f:
     objects = json.load(f)

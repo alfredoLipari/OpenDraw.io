@@ -23,6 +23,10 @@ class Task(BaseModel):
     created_on: int
     timeout: int = TIMEOUT
     user_id: str | None = None
+    score: float = 0.0
+
+class GuessResponse(Task):
+    ai_says: str | None = None
 
 
 class PaginatedTasks(BaseModel):
@@ -38,6 +42,7 @@ class GuessRequest(BaseModel):
 
 class BaseUser(BaseModel):
     username: str
+    score: float = 0.0
 
 
 class UserCreate(BaseUser):
@@ -48,8 +53,10 @@ class User(BaseUser):
     hashed_password: str | None = None
 
 
+
 class UserInDB(User):
     id: str | None = None
+
 
 
 class Token(BaseModel):
@@ -59,3 +66,10 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+
+
+class PaginatedLeaderboard(BaseModel):
+    users: list[BaseUser]
+    total: int
+    page: int
+    size: int
