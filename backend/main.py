@@ -14,10 +14,10 @@ from openai import OpenAI
 from passlib.context import CryptContext
 
 from configuration.config import TIMEOUT, create_mongo_client, get_openai_client, ALGORITHM, \
-    ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
+    ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, MAX_SCORE, TOP_LEADERBOARD_SIZE
 from opendraw import utils
 from opendraw.models import Task, Status, GuessRequest, PaginatedTasks, UserInDB, User, Token, TokenData, UserCreate, \
-    BaseUser
+    BaseUser, GuessResponse, PaginatedLeaderboard
 
 BASE_PATH = "/api/v1"
 
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     on_shutdown_app()
 
 
-app = FastAPI(lifespan=lifespan, name="OpenDraw", version="0.1.0")
+app = FastAPI(lifespan=lifespan, name="Opendraw", version="0.1.0", title="Opendraw API", description="Opendraw API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -168,10 +168,11 @@ async def create_task(db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get
     return task
 
 
-@app.post(BASE_PATH + "/guess/{task_id}", response_model=Task)
+@app.post(BASE_PATH + "/guess/{task_id}", response_model=GuessResponse)
 async def guess(task_id: str, guess_request: GuessRequest,
                 db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get_database),
                 openai_client: OpenAI = Depends(get_openai_client), current_user: UserInDB = Depends(get_current_user)):
+    guess_received_on = utils.get_current_timestamp()
     image_b64 = guess_request.image_b64
 
     try:
@@ -183,10 +184,10 @@ async def guess(task_id: str, guess_request: GuessRequest,
         raise HTTPException(status_code=404, detail="Task not found")
 
     task_data['id'] = str(task_data['_id'])
-    task = Task(**task_data)
+    guess_response = GuessResponse(**task_data)
 
-    if task.status != Status.RUNNING:
-        return task
+    if guess_response.status != Status.RUNNING:
+        return guess_response
 
     response = openai_client.chat.completions.create(
         model="gpt-4o",
@@ -195,7 +196,7 @@ async def guess(task_id: str, guess_request: GuessRequest,
                 "role": "user",
                 "content": [
                     {"type": "text",
-                     "text": "You are given a sketch of an object. Just tell what the object is without any explanation or details."},
+                     "text": "You are given a sketch of an object. Just tell what the object is without any explanation or details or special characters just the word."},
                     {
                         "type": "image_url",
                         "image_url": {
@@ -209,17 +210,43 @@ async def guess(task_id: str, guess_request: GuessRequest,
     )
 
     object_detected = response.choices[0].message.content.strip().lower()
+    object_detected = ''.join(char for char in object_detected if char.isalnum())
+    guess_response.ai_says = object_detected
 
     logger.debug("ChatGPT says: " + object_detected + " for task_id: " + task_id)
 
-    if object_detected == task.object_name.strip().lower():
-        task.status = Status.COMPLETED
+    if object_detected == guess_response.object_name.strip().lower():
+        completion_time = guess_received_on - guess_response.created_on
+        # Update user's score
+        task_score = MAX_SCORE * (1 - ((completion_time - 1) / (TIMEOUT * 1000 - 1)))
+        guess_response.status = Status.COMPLETED
+        guess_response.score = task_score
         await db.tasks.update_one(
             {"_id": ObjectId(task_id)},
-            {"$set": task.model_dump(exclude={"id"})}
+            {"$set": guess_response.model_dump(exclude={"id", "ai_says"})}
+        )
+        await db.users.update_one(
+            {"username": current_user.username},
+            {"$inc": {"score": task_score}}
         )
 
-    return task
+    return guess_response
+
+
+@app.get(BASE_PATH + "/leaderboard", response_model=PaginatedLeaderboard)
+async def get_leaderboard(
+        page: int = Query(0, ge=0),
+        size: int = Query(10, ge=1, le=TOP_LEADERBOARD_SIZE),
+        db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get_database)
+):
+    skip = page * size
+    total = await db.users.count_documents({})
+    users = await db.users.find().sort("score", -1).skip(skip).limit(size).to_list(length=None)
+    leaderboard = [
+        BaseUser(username=user["username"], score=user["score"])
+        for user in users
+    ]
+    return PaginatedLeaderboard(users=leaderboard, total=total, page=page, size=size)
 
 
 @app.get(BASE_PATH + "/tasks", response_model=PaginatedTasks)
@@ -228,7 +255,8 @@ async def get_tasks(page: int = Query(0, ge=0), size: int = Query(10, ge=1),
                     current_user: UserInDB = Depends(get_current_user)):
     skip = page * size
     total = await db.tasks.count_documents({"user_id": current_user.id})
-    tasks = await db.tasks.find({"user_id": current_user.id}).sort("created_on", -1).skip(skip).limit(size).to_list(length=size)
+    tasks = await db.tasks.find({"user_id": current_user.id}).sort("created_on", -1).skip(skip).limit(size).to_list(
+        length=size)
     tasks = [Task(**task, id=str(task["_id"])) for task in tasks]
 
     return PaginatedTasks(tasks=tasks, total=total, page=page, size=size)
@@ -250,6 +278,13 @@ async def login_for_access_token(login_request: UserCreate,
     )
     token = Token(access_token=access_token, token_type="bearer")
     return token
+
+
+@app.get(BASE_PATH + "/user", response_model=BaseUser)
+async def get_current_user(
+        current_user: UserInDB = Depends(get_current_user)):
+    base_user = BaseUser(username=current_user.username, score=current_user.score)
+    return base_user
 
 
 @app.post(BASE_PATH + "/register", response_model=BaseUser)

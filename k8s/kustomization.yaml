@@ -5,6 +5,11 @@ resources:
 - backend-service.yaml
 - frontend-deployment.yaml
 - frontend-service.yaml
+- hpa-backend.yaml
+- secrets.yaml
+- db-deployment.yaml
+- db-service.yaml
+- db-volume.yaml
 
 images:
 - name: backend
