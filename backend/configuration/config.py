@@ -16,7 +16,7 @@ with open("configuration/objects.json", "r") as f:
 # MONGO CONFIG
 
 MONGO_HOST = os.getenv("MONGO_HOST", "34.105.27.9")
-MONGO_PORT = os.getenv("MONGO_PORT", 27000)
+MONGO_PORT = os.getenv("MONGO_PORT", 27017)
 MONGO_PORT = int(MONGO_PORT)
 MONGO_USER = os.getenv("MONGO_USER", "root")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "root")
