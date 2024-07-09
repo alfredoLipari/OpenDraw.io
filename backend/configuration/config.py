@@ -24,7 +24,7 @@ MONGO_DB = os.getenv("MONGO_DB", "sketch")
 
 
 def create_mongo_client():
-    return motor.motor_asyncio.AsyncIOMotorClient(f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/")
+    return motor.motor_asyncio.AsyncIOMotorClient(f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@mongo-service:{MONGO_PORT}/")
 
 
 mongo_client = create_mongo_client()
