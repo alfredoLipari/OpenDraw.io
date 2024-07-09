@@ -6,26 +6,41 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import { Navbar } from './components/navbar.jsx'
 import { GlobalProvider } from './context/globalContext.jsx'
 import { Game } from './pages/Game.jsx';
+import { History } from './pages/History.jsx';
+import { Layout } from './pages/Layout.jsx';
+import { Leaderboard } from './pages/Leaderboard.jsx';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />
-  },
-  {
-    path: "/game",
-    element:<Game />
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <Login />
+      },
+      {
+        path: "game",
+        element: <Game />
+      },
+      {
+        path: "history",
+        element: <History />
+      },
+      {
+        path: "leaderboard",
+        element: <Leaderboard />
+      }
+    ]
   }
-])
+]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ChakraProvider>
       <GlobalProvider>
-        <Navbar />
         <RouterProvider router={router} />
       </GlobalProvider>
     </ChakraProvider>

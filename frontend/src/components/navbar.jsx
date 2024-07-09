@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import axios from "axios";
 import {
   Box,
   Flex,
@@ -12,23 +11,23 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  MenuDivider,
 } from "@chakra-ui/react";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { GlobalContext } from "../context/globalContext";
+import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
-  const { username } = useContext(GlobalContext);
+  const { user } = useContext(GlobalContext);
   const { colorMode, toggleColorMode } = useColorMode();
 
-
+  console.log(user);
   const handleLogout = () => {
-    console.log('trying with api')
-    axios.post("/api/add").then((res) => {
-      console.log(res);
-    });
     
-    //window.location.href = "/";
+    window.location.href = "/";
   }
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -41,32 +40,46 @@ export const Navbar = () => {
           <Flex alignItems={"center"}>
             <Stack direction={"row"} spacing={7}>
               <Button onClick={toggleColorMode}>
-                {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+                {colorMode !== "light" ? <MoonIcon /> : <SunIcon />}
               </Button>
-              <Button
-                as={"a"}
-                fontSize={"sm"}
-                fontWeight={400}
-                variant={"link"}
-                href={"#"}
-              >
-                Leaderboard
-              </Button>
-              {username && (
+             
+              {user.username && (
+                <>
+                 <Button
+                 fontSize={"sm"}
+                 fontWeight={400}
+                 variant={"link"}
+                  onClick={() => navigate('/history')}
+               >
+                 History
+               </Button>
+               <Button
+                 fontSize={"sm"}
+                 fontWeight={400}
+                 variant={"link"}
+                 onClick={() => navigate('/leaderboard')}
+               >
+                 Leaderboard
+               </Button>
                 <Menu>
+                  
                 <MenuButton
                   as={Button}
                   rounded={'full'}
                   variant={'link'}
                   cursor={'pointer'}
                   minW={0}>
-                  {username}
+                  {user.username}
                 </MenuButton>
+                
                 <MenuList alignItems={'center'}>
                  
                   <MenuItem onClick={() => handleLogout()}>Logout</MenuItem>
+                  <MenuDivider />
+                  <MenuItem>Total Score: {user.score}</MenuItem>
                 </MenuList>
               </Menu>
+              </>
               )}
               
             </Stack>

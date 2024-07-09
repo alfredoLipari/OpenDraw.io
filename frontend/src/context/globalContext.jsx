@@ -6,14 +6,23 @@ export const GlobalContext = createContext();
 
 // Define the initial state
 const initialState = {
-  username: ''
+  user : {
+    username: '',
+    access_token: '',
+    token_type: '',
+    password: '',
+    score: 0,
+  }
 };
 
 // Define the reducer function to handle state transitions
 const reducer = (state, action) => {
+  console.log(action)
   switch (action.type) {
     case 'SET_USERNAME':
-      return { ...state, username: action.payload };
+      return { ...state, user: action.payload};
+    case 'SET_SCORE':
+      return { ...state, user: {...state.user, score: action.payload}};  
     default:
       return state;
   }

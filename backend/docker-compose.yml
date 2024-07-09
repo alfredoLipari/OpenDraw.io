@@ -1,0 +1,44 @@
+version: '3.1'
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo_opendraw
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27000:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  opendraw-backend:
+    image: opendraw-backend
+    container_name: opendraw
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      # Backend app and MongoDB settings
+      PORT: 8000
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_USER: root
+      MONGO_PASSWORD: root
+      # JWT and OpenAI settings
+      SECRET_KEY: test_secret_key_12345670
+      ACCESS_TOKEN_EXPIRE_MINUTES: 120
+      OPENAI_API_KEY: sk-proj-HKrZueywbtej0SgA7EeMT3BlbkFJw7LjvVEEEwBCOOJiQFCr
+
+  opendraw-frontend:
+    image: opendraw-frontend
+    container_name: opendraw-frontend
+    restart: always
+    ports:
+      - "8080:8080"  # Map the Nginx exposed port to the host
+
+volumes:
+  mongo-data:
