@@ -14,5 +14,5 @@ COPY . .
 # exposing port 8000 on container
 EXPOSE 8000
 
-# serving flask backend through WSGIServer
+# serving fast api backend through WSGIServer
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000"]
