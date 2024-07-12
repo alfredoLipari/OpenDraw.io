@@ -21,7 +21,9 @@ import {
     ModalFooter,
     ModalBody,
     ModalCloseButton,
-    useDisclosure
+    useDisclosure,
+    AbsoluteCenter,
+    useToast
 } from "@chakra-ui/react";
 import { useScreenshot } from "use-react-screenshot";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -32,11 +34,13 @@ import { useNavigate } from "react-router-dom";
 export const Game = () => {
     const { colorMode } = useColorMode();
 
+    const toast = useToast();
+
     const canvasRef = useRef(null);
     const contextRef = useRef(null);
 
     const [isDrawing, setIsDrawing] = useState(false);
-    const [penColor, setPenColor] = useState("black");
+    const [penColor, setPenColor] = useState("#000000");
     const [isErasing, setIsErasing] = useState(false);
     const [eraserSize, setEraserSize] = useState(3);
 
@@ -64,7 +68,7 @@ export const Game = () => {
         onClose: onGameWonClose
     } = useDisclosure()
 
-    const { user } = useContext(GlobalContext);
+    const { user, dispatch } = useContext(GlobalContext);
 
     const [timer, setTimer] = useState(60);
 
@@ -79,7 +83,7 @@ export const Game = () => {
     useEffect(() => {
 
         if (!isGameStarted) {
-            if(task?.status === "completed"){
+            if (task?.status === "completed") {
                 return;
             }
             onOpen()
@@ -88,19 +92,28 @@ export const Game = () => {
 
         // add to the instance axios the bearer token
         instance.defaults.headers.common['Authorization'] = `Bearer ${user.access_token}`;
-        try{
+        try {
             instance.post("/api/v1/task").then((res) => {
                 console.log(res);
-                
+
                 setTask(res.data);
                 setIsLoading(false);
-                
-                
+
+                toast({
+                    title: "Game Started!",
+                    description: "Draw a " + res.data.object_name,
+                    status: "info",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "top-right"
+
+                })
+
             });
-        }catch(e){
+        } catch (e) {
             console.log(e)
         }
-       
+
     }, [isGameStarted]);
 
     useEffect(() => {
@@ -115,6 +128,16 @@ export const Game = () => {
                 setTimer((prevTimer) => prevTimer - 1);
             }, 1000);
         } else if (timer === 0) {
+            toast({
+                title: "Time is up!",
+                description: "Better luck next time",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+                position: "top-right"
+            })
+            setIsGameStarted(false);
+            setTimer(60)
             onOpenGameOver() // Stop the game
         }
 
@@ -126,11 +149,12 @@ export const Game = () => {
             return;
         }
 
-        if ((task?.status === "running" && task?.status === "completed" ) && timer < 57) {
+        if ((task?.status === "running" && task?.status === "completed") && timer < 57) {
             return;
         }
 
         const canvas = canvasRef.current;
+        console.log('window', window)
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas.style.width = `${window.innerWidth / 2}px`;
@@ -189,9 +213,7 @@ export const Game = () => {
     const finishDrawing = async () => {
         setIsDrawing(false);  // Only close the path here
         const image = await getImage();
-        console.log("image after drawing", image);
         const resized_image = await reduce_image_file_size(image);
-        console.log("resized image after drawing", resized_image);
         guessImage(resized_image);
     };
 
@@ -211,7 +233,16 @@ export const Game = () => {
             const timerNow = timer;
             setTimer(timerNow);
             setIsGameStarted(false);
+            dispatch({ type: 'ADD_SCORE', payload: response.data.score });
             setTask(response.data);
+            toast({
+                title: "Game Over!",
+                description: "The bot has guessed the object, you score a total of " + Math.round(response.data.score) + " points",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+                position: "top-right"
+            })
 
         }
     };
@@ -313,18 +344,19 @@ export const Game = () => {
 
     return (
         <>
-            {isLoading ? <Center height="100hv">
-                <Spinner
-                    thickness='4px'
-                    speed='0.65s'
-                    emptyColor='gray.200'
-                    color='blue.500'
-                    size='xl'
-                />
-                Loading...
+            {isLoading ?
+                <AbsoluteCenter height="100vh">
+                    <Spinner
+                        thickness='4px'
+                        speed='0.65s'
+                        emptyColor='gray.200'
+                        color='blue.500'
+                        size='xl'
+                    />
+                    Loading...
 
 
-            </Center> :
+                </AbsoluteCenter> :
                 <>
                     <Alert status="info" alignItems="center" justifyContent="space-between">
                         <Stack direction="row">
@@ -409,18 +441,18 @@ export const Game = () => {
                     <ModalHeader>Welcome to OpenDraw io!</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        By clicking continue, your game and a timer will start. You will have 60 seconds to draw the object and let the bot guess it, You win if the bot can guess your drawing
+                        By clicking Start, your game and a timer will start. You will have 60 seconds to draw the object and let the bot guess it, You win if the bot can guess your drawing
                         before the timer elapse. Good luck!
                     </ModalBody>
 
                     <ModalFooter>
                         <Center>
-                        <Button colorScheme='blue' variant={"blue"} mr={3} onClick={() => navigate("/history")}>
-                            Game History
-                        </Button>
-                        <Button colorScheme='blue' mr={3} onClick={() => navigate("/leaderboard")}>
-                            Leaderboard
-                        </Button>
+                            <Button colorScheme='blue' variant="outline" mr={3} onClick={() => navigate("/history")}>
+                                Game History
+                            </Button>
+                            <Button colorScheme='teal' mr={3} onClick={() => navigate("/leaderboard")}>
+                                Leaderboard
+                            </Button>
                             <Button colorScheme='blue' mr={3} onClick={onClosemodal}>
                                 Start
                             </Button>
@@ -438,10 +470,10 @@ export const Game = () => {
                         Time is up! Better luck next time. Do you want to play again?
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme='blue' variant={"blue"} mr={3} onClick={() => navigate("/history")}>
+                        <Button colorScheme='blue' variant="outline" mr={3} onClick={() => navigate("/history")}>
                             Game History
                         </Button>
-                        <Button colorScheme='blue' mr={3} onClick={() => navigate("/leaderboard")}>
+                        <Button colorScheme='teal' mr={3} onClick={() => navigate("/leaderboard")}>
                             Leaderboard
                         </Button>
                         <Button colorScheme='blue' mr={3} onClick={() => restartGame()}>
@@ -460,10 +492,10 @@ export const Game = () => {
                         Congratulations! You have won the game. One more game?
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme='blue' variant={"blue"} mr={3} onClick={() => navigate("/history")}>
+                        <Button colorScheme='blue' variant="outline" mr={3} onClick={() => navigate("/history")}>
                             Game History
                         </Button>
-                        <Button colorScheme='blue' mr={3} onClick={() => navigate("/leaderboard")}>
+                        <Button colorScheme='teal' mr={3} onClick={() => navigate("/leaderboard")}>
                             Leaderboard
                         </Button>
                         <Button colorScheme='blue' mr={3} onClick={() => restartGame()}>

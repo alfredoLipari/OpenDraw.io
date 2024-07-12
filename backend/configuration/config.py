@@ -17,7 +17,7 @@ with open("configuration/objects.json", "r") as f:
 
 # MONGO CONFIG
 
-MONGO_HOST = os.getenv("MONGO_HOST", "34.105.27.9")
+MONGO_HOST = os.getenv("MONGO_HOST", "mongo-service")
 MONGO_PORT = os.getenv("MONGO_PORT", 27017)
 MONGO_PORT = int(MONGO_PORT)
 MONGO_USER = os.getenv("MONGO_USER", "root")
@@ -26,7 +26,7 @@ MONGO_DB = os.getenv("MONGO_DB", "sketch")
 
 
 def create_mongo_client():
-    return motor.motor_asyncio.AsyncIOMotorClient(f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@mongo-service:{MONGO_PORT}/")
+    return motor.motor_asyncio.AsyncIOMotorClient(f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/")
 
 
 mongo_client = create_mongo_client()

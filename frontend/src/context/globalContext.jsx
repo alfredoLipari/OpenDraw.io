@@ -22,7 +22,9 @@ const reducer = (state, action) => {
     case 'SET_USERNAME':
       return { ...state, user: action.payload};
     case 'SET_SCORE':
-      return { ...state, user: {...state.user, score: action.payload}};  
+      return { ...state, user: {...state.user, score: action.payload}};
+    case 'ADD_SCORE':
+      return { ...state, user: {...state.user, score: state.user.score + action.payload}};    
     default:
       return state;
   }

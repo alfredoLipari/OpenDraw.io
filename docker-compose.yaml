@@ -14,7 +14,7 @@ services:
       - mongo-data:/data/db
 
   opendraw-backend:
-    image: opendraw-backend
+    image: alipari/opendraw-backend
     container_name: opendraw
     restart: always
     ports:
@@ -34,7 +34,7 @@ services:
       OPENAI_API_KEY: sk-proj-HKrZueywbtej0SgA7EeMT3BlbkFJw7LjvVEEEwBCOOJiQFCr
 
   opendraw-frontend:
-    image: opendraw-frontend
+    image: alipari/opendraw-frontend
     container_name: opendraw-frontend
     restart: always
     ports:

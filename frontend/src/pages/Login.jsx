@@ -79,7 +79,7 @@ export const Login = () => {
       instance.defaults.headers.common['Authorization'] = `Bearer ${data.data.access_token}`
 
       instance.get('api/v1/user').then((res) => {
-        console.log('score', res.data.score)
+        console.log('score', res)
         if (res.status === 200) {
           dispatch({ type: 'SET_SCORE', payload: res.data.score })
         } else {

@@ -49,7 +49,16 @@ export const Navbar = () => {
                  fontSize={"sm"}
                  fontWeight={400}
                  variant={"link"}
-                  onClick={() => navigate('/history')}
+                 onClick={() => navigate('/game')}
+                 colorScheme='blue'
+               >
+                 Play
+               </Button>
+               <Button
+                 fontSize={"sm"}
+                 fontWeight={400}
+                 variant={"link"}
+                 onClick={() => navigate('/history')}
                >
                  History
                </Button>
@@ -71,12 +80,13 @@ export const Navbar = () => {
                   minW={0}>
                   {user.username}
                 </MenuButton>
+
                 
                 <MenuList alignItems={'center'}>
                  
                   <MenuItem onClick={() => handleLogout()}>Logout</MenuItem>
                   <MenuDivider />
-                  <MenuItem>Total Score: {user.score}</MenuItem>
+                  <MenuItem>Total Score: {Math.round(user.score)}</MenuItem>
                 </MenuList>
               </Menu>
               </>
