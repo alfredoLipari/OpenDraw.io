@@ -2,6 +2,8 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import AsyncGenerator
+import random
+from time import sleep
 
 import jwt
 import motor
@@ -14,7 +16,7 @@ from openai import OpenAI
 from passlib.context import CryptContext
 
 from configuration.config import TIMEOUT, create_mongo_client, get_openai_client, ALGORITHM, \
-    ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, MAX_SCORE, TOP_LEADERBOARD_SIZE
+    ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, MAX_SCORE, TOP_LEADERBOARD_SIZE, objects
 from opendraw import utils
 from opendraw.models import Task, Status, GuessRequest, PaginatedTasks, UserInDB, User, Token, TokenData, UserCreate, \
     BaseUser, GuessResponse, PaginatedLeaderboard
@@ -210,7 +212,52 @@ async def guess(task_id: str, guess_request: GuessRequest,
     )
 
     object_detected = response.choices[0].message.content.strip().lower()
-    object_detected = ''.join(char for char in object_detected if char.isalnum())
+    object_detected = ''.join(char for char in object_detected if char.isalnum()) # Remove special characters
+    guess_response.ai_says = object_detected
+
+    logger.debug("ChatGPT says: " + object_detected + " for task_id: " + task_id)
+
+    if object_detected == guess_response.object_name.strip().lower():
+        completion_time = guess_received_on - guess_response.created_on
+        # Update user's score
+        task_score = MAX_SCORE * (1 - ((completion_time - 1) / (TIMEOUT * 1000 - 1)))
+        guess_response.status = Status.COMPLETED
+        guess_response.score = task_score
+        await db.tasks.update_one(
+            {"_id": ObjectId(task_id)},
+            {"$set": guess_response.model_dump(exclude={"id", "ai_says"})}
+        )
+        await db.users.update_one(
+            {"username": current_user.username},
+            {"$inc": {"score": task_score}}
+        )
+
+    return guess_response
+
+@app.post(BASE_PATH + "/test/guess/{task_id}", response_model=GuessResponse)
+async def test_guess(task_id: str, guess_request: GuessRequest,
+                db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get_database),
+                openai_client: OpenAI = Depends(get_openai_client), current_user: UserInDB = Depends(get_current_user)):
+    guess_received_on = utils.get_current_timestamp()
+
+    try:
+        task_data = await db.tasks.find_one({"_id": ObjectId(task_id), "user_id": current_user.id})
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Invalid task ID format")
+
+    if not task_data:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task_data['id'] = str(task_data['_id'])
+    guess_response = GuessResponse(**task_data)
+
+    if guess_response.status != Status.RUNNING:
+        return guess_response
+    
+    sleep(2) # Simulate AI response time
+
+    object_detected = random.choice(objects)
+    object_detected = ''.join(char for char in object_detected if char.isalnum()) # Remove special characters
     guess_response.ai_says = object_detected
 
     logger.debug("ChatGPT says: " + object_detected + " for task_id: " + task_id)

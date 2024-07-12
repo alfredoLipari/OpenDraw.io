@@ -5,8 +5,6 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Debug step: List the contents of the /app directory
-RUN ls -la /app
 
 # Step 2: Set up the production environment
 FROM nginx:stable-alpine

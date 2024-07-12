@@ -37,7 +37,7 @@ export const Login = () => {
       title: title,
       description: "Please wait",
       status: "loading",
-      duration: 2000,
+      duration: 1000,
       isClosable: true,
     })
     let data = '';
@@ -56,7 +56,7 @@ export const Login = () => {
             title: "Account created!",
             description: "Trying to login..",
             status: "loading",
-            duration: 3000,
+            duration: 1000,
             isClosable: true,
           })
         }

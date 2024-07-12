@@ -83,7 +83,7 @@ export const Game = () => {
     useEffect(() => {
 
         if (!isGameStarted) {
-            if (task?.status === "completed") {
+            if (task?.status === "completed" || task?.status === "failed") {
                 return;
             }
             onOpen()
@@ -137,6 +137,8 @@ export const Game = () => {
                 position: "top-right"
             })
             setIsGameStarted(false);
+            // set the task to failed
+            setTask({ ...task, status: "failed" });
             setTimer(60)
             onOpenGameOver() // Stop the game
         }
