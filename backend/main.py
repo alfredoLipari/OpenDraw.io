@@ -269,6 +269,10 @@ async def test_guess(task_id: str,
     
     sleep(2) # Simulate AI response time
 
+    # add computational expense
+    for i in range(1000):
+        _ = i * i
+
     object_detected = random.choice(objects)
     object_detected = ''.join(char for char in object_detected if char.isalnum()) # Remove special characters
     guess_response.ai_says = object_detected

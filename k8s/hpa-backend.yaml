@@ -18,6 +18,7 @@ spec:
     name: backend
   behavior:
     scaleDown:
+      stabilizationWindowSeconds: 10
       policies:
         - type: Pods
           value: 1
