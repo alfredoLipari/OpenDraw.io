@@ -125,7 +125,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
 
 @app.get("/health")
 async def root():
-    return {"message": "Hello World"}
+    return "Hello world", 200
+
+
+@app.get(BASE_PATH + "/health")
+async def root():
+    return "Healthy", 200
 
 
 @app.get(BASE_PATH + "/task/{task_id}", response_model=Task)
