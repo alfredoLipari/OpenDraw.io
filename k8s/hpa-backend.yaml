@@ -16,10 +16,3 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: backend
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 10
-      policies:
-        - type: Pods
-          value: 1
-          periodSeconds: 15
