@@ -36,5 +36,16 @@ spec:
                   name: opendraw-secrets
                   key: OPENAI_API_KEY      
           ports:
-            -  containerPort: 8000 
+            -  containerPort: 8000
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      terminationGracePeriodSeconds: 40         
 ...
