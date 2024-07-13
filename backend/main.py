@@ -266,9 +266,6 @@ async def test_guess(task_id: str,
 
     task_data['id'] = str(task_data['_id'])
     guess_response = GuessResponse(**task_data)
-
-    if guess_response.status != Status.RUNNING:
-        return guess_response
     
     sleep(2) # Simulate AI response time
 
