@@ -43,8 +43,8 @@ spec:
                 command: ["/bin/sh", "-c", "sleep 30"]
           readinessProbe:
             httpGet:
-              path: /api/v1/health
-              port: 8080
+              path: /health
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10             
 ...
