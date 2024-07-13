@@ -234,10 +234,26 @@ async def guess(task_id: str, guess_request: GuessRequest,
 
     return guess_response
 
+@app.post(BASE_PATH + "/test/task", response_model=Task)
+async def create_task(db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get_database),
+                      current_user: UserInDB = Depends(get_current_user)):
+
+    object_name = utils.get_random_object()
+    created_on = utils.get_current_timestamp()
+    task = Task(
+        object_name=object_name,
+        status=Status.RUNNING,
+        created_on=created_on,
+        user_id=current_user.id
+    )
+    task_saved = await db.tasks.insert_one(task.model_dump(exclude={"id"}))
+    task.id = str(task_saved.inserted_id)
+    return task
+
 @app.post(BASE_PATH + "/test/guess/{task_id}", response_model=GuessResponse)
-async def test_guess(task_id: str, guess_request: GuessRequest,
+async def test_guess(task_id: str,
                 db: motor.motor_asyncio.AsyncIOMotorDatabase = Depends(get_database),
-                openai_client: OpenAI = Depends(get_openai_client), current_user: UserInDB = Depends(get_current_user)):
+                current_user: UserInDB = Depends(get_current_user)):
     guess_received_on = utils.get_current_timestamp()
 
     try:
