@@ -4,7 +4,7 @@ metadata:
   name: backend-hpa
 spec:
   minReplicas: 1  # Note: minReplicas cannot be 0 in HPA, it must be at least 1
-  maxReplicas: 5
+  maxReplicas: 7
   metrics:
     - resource:
         name: cpu
