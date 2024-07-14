@@ -8,7 +8,7 @@ spec:
     matchLabels:
       tier: backend
       track: stable
-  replicas: 7
+  replicas: 6
   template:
     metadata:
       labels:
@@ -40,6 +40,12 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command:  ["/bin/sh", "-c", "kill -SIGTERM 1"]
+                command:  ["sh", "-c", "sleep 5"]
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health  # Adjust the path based on your BASE_PATH and routing
+              port: 8000  # The port your application is running on
+            initialDelaySeconds: 10  # Time to wait before first check
+            periodSeconds: 5  # How often to perform the check
       terminationGracePeriodSeconds: 40        
 ...

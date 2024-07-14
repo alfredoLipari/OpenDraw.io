@@ -37,16 +37,16 @@ def on_shutdown_app():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown(signum, frame)))
+    signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown()))
     on_startup_app()
     yield
+    graceful_shutdown()
 
 
-async def graceful_shutdown(signum, frame):
+async def graceful_shutdown():
     logger.info("Shutting down")
     on_shutdown_app()
-    await asyncio.sleep(3)
-
+    await asyncio.sleep(5)
     asyncio.get_running_loop().stop()
 
 app = FastAPI(lifespan=lifespan, name="Opendraw", version="0.1.0", title="Opendraw API", description="Opendraw API")
@@ -139,6 +139,7 @@ async def root():
 
 @app.get(BASE_PATH + "/health")
 async def root():
+    logger.info("Health check!")
     return "Healthy", 200
 
 
