@@ -1,5 +1,4 @@
 import asyncio
-import signal
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import AsyncGenerator
@@ -27,7 +26,6 @@ BASE_PATH = "/api/v1"
 
 def on_startup_app():
     logger.info("Startup")
-    # listen to signals SIGTERM
     asyncio.create_task(move_expired_tasks())
 
 
@@ -35,26 +33,12 @@ def on_shutdown_app():
     logger.info("Shutdown")
 
 
-#def register_signal_handler():
-#    loop = asyncio.get_running_loop()
-#    for signame in {'SIGINT', 'SIGTERM'}:
-#        loop.add_signal_handler(getattr(signal, signame), lambda: asyncio.create_task(graceful_shutdown()))
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    #signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown()))
     on_startup_app()
     yield
-    logger.info("Waiting for tasks to finish")
-    #graceful_shutdown()
-
-
-async def graceful_shutdown():
-    logger.info("Shutting down")
     on_shutdown_app()
-    await asyncio.sleep(5)
-    asyncio.get_running_loop().stop()
+
 
 app = FastAPI(lifespan=lifespan, name="Opendraw", version="0.1.0", title="Opendraw API", description="Opendraw API")
 
@@ -66,14 +50,14 @@ app.add_middleware(
     allow_headers=["*"],  # This allows all headers
 )
 
+mongo_client = create_mongo_client()
+db = mongo_client.taskdb
 
 async def get_database() -> AsyncGenerator:
-    mongo_client = create_mongo_client()
-    db = mongo_client.taskdb
     try:
         yield db
     finally:
-        mongo_client.close()
+        pass
 
 
 # Dependency for password hashing
@@ -146,7 +130,6 @@ async def root():
 
 @app.get(BASE_PATH + "/health")
 async def root():
-    logger.info("Health check!")
     return "Healthy", 200
 
 
@@ -288,8 +271,6 @@ async def test_guess(task_id: str,
 
     task_data['id'] = str(task_data['_id'])
     guess_response = GuessResponse(**task_data)
-    
-    sleep(1) # Simulate AI response time
 
     object_detected = random.choice(objects)
     object_detected = ''.join(char for char in object_detected if char.isalnum()) # Remove special characters
@@ -386,24 +367,23 @@ async def register_user(user_create: UserCreate, db: motor.motor_asyncio.AsyncIO
 async def move_expired_tasks():
     while True:
         try:
-            async for db in get_database():
-                current_time = utils.get_current_timestamp()
-                expiration_time = TIMEOUT * 1000  # 60 seconds in milliseconds
-                expired_tasks = await db.tasks.find(
-                    {"created_on": {"$lt": current_time - expiration_time}, "status": Status.RUNNING}
-                ).to_list(length=100)
-                if expired_tasks:
-                    logger.debug(f"Found {len(expired_tasks)} expired tasks")
-                    for task_data in expired_tasks:
-                        logger.debug(f"Moving task {task_data['_id']} to FAILED")
-                        task_data['id'] = str(task_data['_id'])
-                        task = Task(**task_data)
-                        task.status = Status.FAILED
-                        await db.tasks.update_one({
-                            "_id": ObjectId(task.id)},
-                            {"$set": task.model_dump(exclude={"id"})}
-                        )
-            await asyncio.sleep(5)  # Check for expired tasks every 10 seconds
+            current_time = utils.get_current_timestamp()
+            expiration_time = TIMEOUT * 1000  # 60 seconds in milliseconds
+            expired_tasks = await db.tasks.find(
+                {"created_on": {"$lt": current_time - expiration_time}, "status": Status.RUNNING}
+            ).to_list(length=100)
+            if expired_tasks:
+                logger.debug(f"Found {len(expired_tasks)} expired tasks")
+                for task_data in expired_tasks:
+                    logger.debug(f"Moving task {task_data['_id']} to FAILED")
+                    task_data['id'] = str(task_data['_id'])
+                    task = Task(**task_data)
+                    task.status = Status.FAILED
+                    await db.tasks.update_one(
+                        {"_id": ObjectId(task.id)},
+                        {"$set": task.model_dump(exclude={"id"})}
+                    )
+            await asyncio.sleep(5)  # Check for expired tasks every 5 seconds
         except Exception as e:
             logger.exception(f"Error while moving expired tasks: {e}")
             await asyncio.sleep(5)  # Wait before retrying in case of error
