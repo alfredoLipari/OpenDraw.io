@@ -272,6 +272,8 @@ async def test_guess(task_id: str,
     task_data['id'] = str(task_data['_id'])
     guess_response = GuessResponse(**task_data)
 
+    asyncio.sleep(1.5) # Simulate AI response time 
+
     object_detected = random.choice(objects)
     object_detected = ''.join(char for char in object_detected if char.isalnum()) # Remove special characters
     guess_response.ai_says = object_detected
