@@ -3,7 +3,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: backend-hpa
 spec:
-  minReplicas: 1  # Note: minReplicas cannot be 0 in HPA, it must be at least 1
+  minReplicas: 2  # Note: minReplicas cannot be 0 in HPA, it must be at least 1
   maxReplicas: 7
   metrics:
     - resource:

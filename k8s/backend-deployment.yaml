@@ -46,6 +46,6 @@ spec:
               path: /api/v1/health  # Adjust the path based on your BASE_PATH and routing
               port: 8000  # The port your application is running on
             initialDelaySeconds: 10  # Time to wait before first check
-            periodSeconds: 5  # How often to perform the check
+            periodSeconds: 15  # How often to perform the check
       terminationGracePeriodSeconds: 40        
 ...
