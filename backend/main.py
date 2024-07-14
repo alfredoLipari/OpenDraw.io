@@ -35,19 +35,19 @@ def on_shutdown_app():
     logger.info("Shutdown")
 
 
-def register_signal_handler():
-    loop = asyncio.get_running_loop()
-    for signame in {'SIGINT', 'SIGTERM'}:
-        loop.add_signal_handler(getattr(signal, signame), lambda: asyncio.create_task(graceful_shutdown()))
+#def register_signal_handler():
+#    loop = asyncio.get_running_loop()
+#    for signame in {'SIGINT', 'SIGTERM'}:
+#        loop.add_signal_handler(getattr(signal, signame), lambda: asyncio.create_task(graceful_shutdown()))
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown()))
+    #signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown()))
     on_startup_app()
     yield
     logger.info("Waiting for tasks to finish")
-    graceful_shutdown()
+    #graceful_shutdown()
 
 
 async def graceful_shutdown():
