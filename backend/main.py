@@ -38,13 +38,13 @@ def on_shutdown_app():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown(signum, frame)))
-    await on_startup_app()
+    on_startup_app()
     yield
 
 
 async def graceful_shutdown(signum, frame):
     logger.info("Shutting down")
-    await on_shutdown_app()
+    on_shutdown_app()
     await asyncio.sleep(3)
 
     asyncio.get_running_loop().stop()
