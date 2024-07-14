@@ -9,8 +9,8 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GAR_LOCATION: us-west1
-  GKE_CLUSTER: cluster-app
-  GKE_ZONE: us-west1
+  GKE_CLUSTER: opendraw-milan-cluster
+  GKE_ZONE: europe-west8
   DEPLOYMENT_NAME_FE: react-app # Update this to your frontend deployment name
   DEPLOYMENT_NAME_BE: backend # Update this to your backend deployment name
   REPOSITORY: opendraw-repo
