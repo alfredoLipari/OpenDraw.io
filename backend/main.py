@@ -1,4 +1,5 @@
 import asyncio
+import signal
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import AsyncGenerator
@@ -26,6 +27,7 @@ BASE_PATH = "/api/v1"
 
 def on_startup_app():
     logger.info("Startup")
+    # listen to signals SIGTERM
     asyncio.create_task(move_expired_tasks())
 
 
@@ -35,10 +37,17 @@ def on_shutdown_app():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    on_startup_app()
+    signal.signal(signal.SIGTERM, lambda signum, frame: asyncio.create_task(graceful_shutdown(signum, frame)))
+    await on_startup_app()
     yield
-    on_shutdown_app()
 
+
+async def graceful_shutdown(signum, frame):
+    logger.info("Shutting down")
+    await on_shutdown_app()
+    await asyncio.sleep(3)
+
+    asyncio.get_running_loop().stop()
 
 app = FastAPI(lifespan=lifespan, name="Opendraw", version="0.1.0", title="Opendraw API", description="Opendraw API")
 
