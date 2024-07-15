@@ -31,7 +31,7 @@ services:
       # JWT and OpenAI settings
       SECRET_KEY: test_secret_key_12345670
       ACCESS_TOKEN_EXPIRE_MINUTES: 120
-      OPENAI_API_KEY: sk-proj-HKrZueywbtej0SgA7EeMT3BlbkFJw7LjvVEEEwBCOOJiQFCr
+      OPENAI_API_KEY: your api key 
 
   opendraw-frontend:
     image: alipari/opendraw-frontend
