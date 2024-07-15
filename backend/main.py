@@ -42,6 +42,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, name="Opendraw", version="0.1.0", title="Opendraw API", description="Opendraw API")
 
+# Health check router
+health_check_router = FastAPI()
+
+@health_check_router.get("/health")
+async def health_check():
+    return "Healthy", 200
+
+app.mount("/health", health_check_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # This allows all origins
@@ -121,16 +130,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
     if user is None:
         raise credentials_exception
     return user
-
-
-@app.get("/health")
-async def root():
-    return "Hello world", 200
-
-
-@app.get(BASE_PATH + "/health")
-async def root():
-    return "Healthy", 200
 
 
 @app.get(BASE_PATH + "/task/{task_id}", response_model=Task)
@@ -385,7 +384,7 @@ async def move_expired_tasks():
                         {"_id": ObjectId(task.id)},
                         {"$set": task.model_dump(exclude={"id"})}
                     )
-            await asyncio.sleep(5)  # Check for expired tasks every 5 seconds
+            await asyncio.sleep(10)  # Check for expired tasks every 5 seconds
         except Exception as e:
             logger.exception(f"Error while moving expired tasks: {e}")
-            await asyncio.sleep(5)  # Wait before retrying in case of error
+            await asyncio.sleep(10)  # Wait before retrying in case of error

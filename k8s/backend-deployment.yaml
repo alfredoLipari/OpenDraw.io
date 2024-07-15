@@ -38,12 +38,11 @@ spec:
             - containerPort: 8000
           readinessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /health/health
               port: 8000
             initialDelaySeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 5
-            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 10
           lifecycle:
             preStop:
               exec:
