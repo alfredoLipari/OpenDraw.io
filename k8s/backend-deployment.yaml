@@ -38,7 +38,7 @@ spec:
               path: /api/v1/health
               port: 8000
             initialDelaySeconds: 20
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 5
           lifecycle:
             preStop:
