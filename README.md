@@ -91,7 +91,6 @@ Steps to deploy the application to GKE include:
 3.  Creating a GKE cluster and deploying Kubernetes objects.
 4.  Configuring Horizontal Pod Autoscaler for scalability.
 
-For detailed deployment commands and configurations, please refer to the Kubernetes and GKE sections in the repository.
 
 
  +++
