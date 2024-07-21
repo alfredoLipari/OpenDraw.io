@@ -192,7 +192,7 @@ async def guess(task_id: str, guess_request: GuessRequest,
         return guess_response
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "user",
