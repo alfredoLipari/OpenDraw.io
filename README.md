@@ -79,11 +79,7 @@ To run the application locally:
 2.  Use the provided Docker Compose file to set up the environment.
 3.  Assign an API key from OpenAI for full functionality.
 
-bash
-
-Copia codice
-
-`docker-compose up`
+then run: `docker-compose up`
 
 Deployment to GKE
 -----------------
@@ -97,9 +93,5 @@ Steps to deploy the application to GKE include:
 
 For detailed deployment commands and configurations, please refer to the Kubernetes and GKE sections in the repository.
 
-Conclusion
-----------
-
-This project demonstrates the implementation of a scalable full-stack web application using Kubernetes on GKE, highlighting key aspects like container orchestration, load balancing, and CI/CD integration.
 
  +++
